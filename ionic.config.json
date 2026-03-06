@@ -1,0 +1,7 @@
+{
+  "name": "plantcare",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
