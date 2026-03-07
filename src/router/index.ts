@@ -1,38 +1,62 @@
-import { createRouter, createWebHistory } from '@ionic/vue-router';
-import { RouteRecordRaw } from 'vue-router';
-import TabsPage from '../views/TabsPage.vue'
+import { createRouter, createWebHistory } from '@ionic/vue-router'
 
-const routes: Array<RouteRecordRaw> = [
+import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
+
+import Tabs from '../views/Tabs.vue'
+import Plants from '../views/Plants.vue'
+import AddPlant from '../views/AddPlant.vue'
+import Profile from '../views/Profile.vue'
+
+const routes = [
+
   {
     path: '/',
-    redirect: '/tabs/tab1'
+    component: Login
   },
+
+  {
+    path: '/register',
+    component: Register
+  },
+
+  // Tabs Layout
   {
     path: '/tabs/',
-    component: TabsPage,
+    component: Tabs,
     children: [
+
+      {
+        path: 'home',
+        component: Plants
+      },
+
+      {
+        path: 'add',
+        component: AddPlant
+      },
+      {
+        path: 'plants',
+        component: () => import('../views/MyPlants.vue')
+      },
+
+      {
+        path: 'profile',
+        component: Profile
+      },
+
       {
         path: '',
-        redirect: '/tabs/tab1'
-      },
-      {
-        path: 'tab1',
-        component: () => import('@/views/Tab1Page.vue')
-      },
-      {
-        path: 'tab2',
-        component: () => import('@/views/Tab2Page.vue')
-      },
-      {
-        path: 'tab3',
-        component: () => import('@/views/Tab3Page.vue')
+        redirect: '/tabs/home'
       }
+
     ]
   }
+
 ]
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(),
   routes
 })
 

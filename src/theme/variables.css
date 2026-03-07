@@ -1,2 +1,135 @@
-/* For information on how to create your own theme, please refer to:
-http://ionicframework.com/docs/theming/ */
+:root {
+
+/* 🌿 PRIMARY COLOR */
+
+--ion-color-primary: #16A34A;
+--ion-color-primary-rgb: 22,163,74;
+--ion-color-primary-contrast: #ffffff;
+--ion-color-primary-shade: #15803d;
+--ion-color-primary-tint: #22c55e;
+
+
+/* 🌿 BACKGROUND */
+
+--ion-background-color: #F6F7FB;
+--ion-text-color: #1F2937;
+
+
+/* 🌿 BORDER RADIUS */
+
+--ion-border-radius: 16px;
+
+}
+
+
+/* 🌿 APP BACKGROUND */
+
+ion-content{
+--background:#F6F7FB;
+}
+
+
+/* 🌿 CARD DESIGN */
+
+ion-card{
+
+border-radius:18px;
+box-shadow:0 8px 20px rgba(0,0,0,0.08);
+
+}
+
+
+/* 🌿 TAB BAR */
+
+ion-tab-bar{
+
+border-top-left-radius:20px;
+border-top-right-radius:20px;
+
+box-shadow:0 -4px 10px rgba(0,0,0,0.05);
+
+background:white;
+
+}
+
+
+/* 🌿 SMART HEADER */
+
+.smart-header{
+
+background: linear-gradient(
+135deg,
+#16A34A,
+#22C55E
+);
+
+color:white;
+
+padding:28px;
+
+border-bottom-left-radius:30px;
+border-bottom-right-radius:30px;
+
+}
+
+.smart-header h1{
+
+margin:0;
+font-size:26px;
+font-weight:600;
+
+}
+
+.smart-header p{
+
+margin-top:4px;
+opacity:0.9;
+
+}
+
+
+/* 🌿 PLANT CARD */
+
+.plant-card{
+
+background:white;
+
+border-radius:18px;
+
+padding:14px;
+
+margin:12px;
+
+box-shadow:0 4px 12px rgba(0,0,0,0.05);
+
+}
+
+
+/* 🌿 STATUS BADGES */
+
+.status{
+
+padding:6px 12px;
+
+border-radius:20px;
+
+font-size:12px;
+
+text-transform:capitalize;
+
+}
+
+.status.healthy{
+background:#d1fae5;
+color:#065f46;
+}
+
+.status.warning{
+background:#fef3c7;
+color:#92400e;
+}
+
+.status.critical{
+background:#fee2e2;
+color:#991b1b;
+}
