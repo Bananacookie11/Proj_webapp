@@ -9,23 +9,86 @@
 
 <ion-content class="ion-padding">
 
-  <!-- ชื่อพืช -->
+  <!-- Plant Name -->
   <ion-item>
-    <ion-input v-model="name" placeholder="Plant Name"></ion-input>
+    <ion-input
+      v-model="name"
+      placeholder="Plant Name">
+    </ion-input>
   </ion-item>
 
-  <!-- ความสูง -->
+  <!-- Upload Photo -->
+  <div class="photo-box">
+
+    <input type="file" accept="image/*" @change="handleFile" />
+
+    <img
+      v-if="imageUrl"
+      :src="imageUrl"
+      class="preview"
+    />
+
+  </div>
+
+  <!-- Health Status -->
   <ion-item>
-    <ion-input v-model="height" type="number" placeholder="Height (cm)"></ion-input>
+    <ion-label>Health Status</ion-label>
+
+    <ion-select v-model="health">
+
+      <ion-select-option value="Healthy">
+        Healthy
+      </ion-select-option>
+
+      <ion-select-option value="Warning">
+        Warning
+      </ion-select-option>
+
+      <ion-select-option value="Sick">
+        Sick
+      </ion-select-option>
+
+    </ion-select>
   </ion-item>
 
-  <!-- Upload รูป -->
-  <input type="file" @change="handleFile" />
+  <!-- Date & Time -->
+  <ion-item>
+    <ion-label>Date & Time</ion-label>
 
-  <img v-if="imageUrl" :src="imageUrl" width="200" />
+    <ion-datetime
+      v-model="dateTime"
+      presentation="date-time">
+    </ion-datetime>
 
-  <ion-button expand="block" @click="addPlant">
+  </ion-item>
+
+  <!-- Notes -->
+  <ion-item>
+    <ion-textarea
+      v-model="notes"
+      placeholder="Notes about the plant">
+    </ion-textarea>
+  </ion-item>
+
+  <!-- Save Button -->
+  <ion-button
+    expand="block"
+    color="success"
+    @click="addPlant">
+
     Save Plant
+
+  </ion-button>
+
+  <!-- Cancel Button -->
+  <ion-button
+    expand="block"
+    fill="outline"
+    color="medium"
+    @click="router.back()">
+
+    Cancel
+
   </ion-button>
 
 </ion-content>
@@ -43,7 +106,12 @@ IonTitle,
 IonContent,
 IonItem,
 IonInput,
-IonButton
+IonButton,
+IonSelect,
+IonSelectOption,
+IonLabel,
+IonDatetime,
+IonTextarea
 } from '@ionic/vue'
 
 import { ref } from 'vue'
@@ -59,16 +127,25 @@ uploadBytes,
 getDownloadURL
 } from "firebase/storage"
 
+const router = useRouter()
+
 const name = ref("")
-const height = ref("")
+const health = ref("Healthy")
+const dateTime = ref("")
+const notes = ref("")
+
 const imageFile = ref(null)
 const imageUrl = ref("")
 
-const router = useRouter()
-
 function handleFile(event){
 
-imageFile.value = event.target.files[0]
+const file = event.target.files[0]
+
+if(!file) return
+
+imageFile.value = file
+
+imageUrl.value = URL.createObjectURL(file)
 
 }
 
@@ -76,7 +153,10 @@ async function uploadImage(){
 
 if(!imageFile.value) return ""
 
-const fileRef = storageRef(storage,"plants/"+Date.now()+"_"+imageFile.value.name)
+const fileRef = storageRef(
+storage,
+"plants/"+Date.now()+"_"+imageFile.value.name
+)
 
 await uploadBytes(fileRef,imageFile.value)
 
@@ -93,16 +173,23 @@ try{
 const image = await uploadImage()
 
 await addDoc(collection(db,"plants"),{
+
 name:name.value,
-height:Number(height.value),
+health:health.value,
+datetime:dateTime.value,
+notes:notes.value,
 image:image
+
 })
+
+alert("Plant saved successfully")
 
 router.push("/plants")
 
 }catch(err){
 
 console.error(err)
+
 alert("Error saving plant")
 
 }
@@ -110,3 +197,18 @@ alert("Error saving plant")
 }
 
 </script>
+
+<style>
+
+.photo-box{
+margin:15px 0;
+text-align:center;
+}
+
+.preview{
+width:200px;
+margin-top:10px;
+border-radius:10px;
+}
+
+</style>

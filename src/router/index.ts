@@ -7,6 +7,7 @@ import Tabs from '../views/Tabs.vue'
 import Plants from '../views/Plants.vue'
 import AddPlant from '../views/AddPlant.vue'
 import Profile from '../views/Profile.vue'
+import Reports from '../views/Reports.vue'
 
 const routes = [
 
@@ -43,6 +44,11 @@ const routes = [
       {
         path: 'profile',
         component: Profile
+      },
+
+      {
+        path: 'reports',
+        component: Reports
       },
 
       {

@@ -6,7 +6,7 @@
   <div class="logo">
     🌿
     <h1>PlantCare</h1>
-    <p>Smart Plant Health Management</p>
+    <p>Plant health &growth Management</p>
   </div>
 
   <div class="card">
@@ -120,6 +120,11 @@ font-weight:bold;
 
 .logo p{
 font-size:14px;
+}
+
+.logo{
+font-size:60px;
+margin-bottom:10px;
 }
 
 .card{

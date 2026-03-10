@@ -1,46 +1,51 @@
 <template>
+
 <ion-page>
+<ion-content class="main-bg">
 
-<ion-header>
-<ion-toolbar color="success">
-<ion-title>🌿 My Plants</ion-title>
-</ion-toolbar>
-</ion-header>
+<!-- HEADER -->
 
-<ion-content class="ion-padding">
+<div class="header">
+<h1>Dashboard</h1>
+<p></p>
+</div>
 
-<!-- Weather Info -->
+<!-- STATS -->
 
-<ion-card class="weather-card">
+<div class="stats-grid">
+
+<div class="stat-card">
+<div class="icon green">🌿</div>
+<h2>{{ plants.length }}</h2>
+<p>Total Plants</p>
+</div>
+
+<div class="stat-card">
+<div class="icon blue">💧</div>
+<h2>{{ moisture }}%</h2>
+<p>Soil Moisture</p>
+</div>
+
+<div class="stat-card">
+<div class="icon yellow">☀️</div>
+<h2>{{ sunlight }}%</h2>
+<p>Sunlight</p>
+</div>
+
+<div class="stat-card">
+<div class="icon red">🌡</div>
+<h2>{{ temperature }}°C</h2>
+<p>Temperature</p>
+</div>
+
+</div>
+
+<!-- MONTHLY CHART -->
+
+<ion-card class="chart-card">
 
 <ion-card-header>
-<ion-card-title>🌦 Water Advice</ion-card-title>
-</ion-card-header>
-
-<ion-card-content>
-
-<p v-if="temperature">
-Temperature: {{ temperature }}°C</p>
-
-<p v-if="temperature && temperature > 30">
-🔥 Hot weather — water plants more often
-</p>
-
-<p v-if="temperature && temperature < 25">
-💧 Cool weather — normal watering
-</p>
-
-</ion-card-content>
-
-</ion-card>
-
-
-<!-- Growth Chart -->
-
-<ion-card>
-
-<ion-card-header>
-<ion-card-title>📊 Growth Chart</ion-card-title>
+<ion-card-title>📈 Monthly Growth</ion-card-title>
 </ion-card-header>
 
 <ion-card-content>
@@ -49,138 +54,66 @@ Temperature: {{ temperature }}°C</p>
 
 </ion-card>
 
+<!-- PLANTS -->
 
-<!-- Plant Grid -->
+<h2 class="section-title">My Plants</h2>
 
 <div class="plant-grid">
 
-<ion-card
+<div
 v-for="plant in plants"
 :key="plant.id"
-class="plant-card">
+class="plant-card"
+@click="openPlantDetail(plant)"
+>
 
-<img
-v-if="plant.image"
-:src="plant.image"
-class="plant-image"
-/>
+<img :src="plant.image" class="plant-image"/>
 
-<ion-card-header>
-
-<ion-card-title class="plant-title">
-🌱 {{ plant.name }}
-</ion-card-title>
-
-</ion-card-header>
-
-<ion-card-content>
-
-<!-- Plant Health -->
-
-<div class="health-status">
-
-<span
-:class="plant.height > 10 ? 'healthy' : 'dry'">
-
-{{ plant.height > 10 ? "🌿 Healthy" : "🌵 Dry" }}
-
-</span>
-
-</div>
-
-
-<p class="height-text">
-Height: {{ plant.height }} cm
+<p class="plant-name">
+{{ plant.name }}
 </p>
 
+<div class="health-badge" :class="plant.status">
+{{ plant.status }}
+</div>
 
-<!-- Growth Progress -->
-
-<ion-progress-bar
-:value="plant.height / 100"
-color="success">
-</ion-progress-bar>
-
-
-<ion-item class="height-input">
-<ion-input
-type="number"
-v-model="plant.newHeight"
-placeholder="Add height">
-</ion-input>
-</ion-item>
-
-
-<ion-button
-expand="block"
-color="success"
-@click="updateHeight(plant)">
-Update Height
-</ion-button>
-
-<ion-button
-expand="block"
-color="secondary"
-@click="loadGrowthHistory(plant.id)">
-View Growth
-</ion-button>
-
-<ion-button
-expand="block"
-color="warning"
-@click="scheduleWaterReminder(plant)">
-Water Reminder
-</ion-button>
-
-<ion-button
-expand="block"
-color="danger"
-@click="deletePlant(plant)">
-Delete
-</ion-button>
-
-</ion-card-content>
-
-</ion-card>
+<div v-if="isNeedWater(plant)" class="water-alert">
+⚠ Needs Water
+</div>
 
 </div>
 
+</div>
 
+<!-- PLANT DETAIL -->
 
-
-
-<!-- Add Plant Modal -->
-
-<ion-modal :is-open="showAdd">
+<ion-modal :is-open="showDetail">
 
 <ion-header>
-<ion-toolbar>
-<ion-title>Add Plant</ion-title>
+<ion-toolbar color="success">
+<ion-title>Plant Detail</ion-title>
 </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
 
-<ion-item>
-<ion-input
-v-model="newPlant"
-placeholder="Plant name">
-</ion-input>
-</ion-item>
+<div class="detail-card">
 
-<ion-button expand="block" @click="pickImage">
-📷 Take Photo
-</ion-button>
+<img :src="selectedPlant.image" class="detail-img"/>
 
-<img v-if="imageUrl" :src="imageUrl" class="preview" />
+<h2>{{ selectedPlant.name }}</h2>
 
-<ion-button expand="block" color="success" @click="addPlant">
-Add Plant
-</ion-button>
+<div class="health-badge big" :class="selectedPlant.status">
+{{ selectedPlant.status }}
+</div>
 
-<ion-button expand="block" color="medium" @click="showAdd=false">
-Close
-</ion-button>
+<div v-if="isNeedWater(selectedPlant)" class="water-alert big">
+⚠ Needs Water
+</div>
+
+<canvas id="plantChart" class="growth-chart"></canvas>
+
+</div>
 
 </ion-content>
 
@@ -188,81 +121,46 @@ Close
 
 </ion-content>
 </ion-page>
-</template>
 
+</template>
 
 <script setup>
 
 import {
 IonPage,
-IonHeader,
-IonToolbar,
-IonTitle,
 IonContent,
 IonCard,
 IonCardHeader,
 IonCardTitle,
 IonCardContent,
-IonButton,
-IonItem,
-IonInput,
-IonFab,
-IonFabButton,
+IonProgressBar,
 IonModal,
-IonProgressBar
+IonToolbar,
+IonTitle,
+IonHeader
 } from '@ionic/vue'
 
 import { ref, onMounted, nextTick } from 'vue'
+
 import Chart from 'chart.js/auto'
 
 import { db } from '../firebase'
 
-import {
-collection,
-getDocs,
-addDoc,
-updateDoc,
-deleteDoc,
-doc,
-query,
-where
-} from "firebase/firestore"
-
-import { Camera, CameraResultType } from '@capacitor/camera'
-import { LocalNotifications } from '@capacitor/local-notifications'
-
+import { collection, getDocs } from "firebase/firestore"
 
 const plants = ref([])
-const newPlant = ref("")
-const imageUrl = ref("")
-const showAdd = ref(false)
 
-const temperature = ref(null)
+const temperature = ref(0)
+const sunlight = ref(0)
+const moisture = ref(0)
+
+const showDetail = ref(false)
+const selectedPlant = ref({})
 
 let chart
+let plantChart
 
-
-function openAddPlant(){
-showAdd.value = true
-}
-
-
-// Camera
-
-async function pickImage(){
-
-const image = await Camera.getPhoto({
-quality:90,
-allowEditing:false,
-resultType:CameraResultType.DataUrl
-})
-
-imageUrl.value = image.dataUrl
-
-}
-
-
-// Weather API
+// WEATHER
 
 async function loadWeather(){
 
@@ -276,149 +174,181 @@ temperature.value = data.current_weather.temperature
 
 }
 
+// ENVIRONMENT SIMULATION
 
-// Load Plants
+function startEnvironmentSimulation(){
+
+setInterval(()=>{
+
+sunlight.value = Math.floor(Math.random()*40)+60
+moisture.value = Math.floor(Math.random()*40)+50
+
+},3000)
+
+}
+
+// LOAD PLANTS
 
 async function loadPlants(){
 
-const querySnapshot = await getDocs(collection(db,"plants"))
+const snapshot = await getDocs(collection(db,"plants"))
 
-plants.value = querySnapshot.docs.map(d => ({
+plants.value = snapshot.docs.map(d=>({
 id:d.id,
-...d.data(),
-newHeight:null
+...d.data()
 }))
 
 updateChart()
 
 }
 
+// MONTHLY CHART
 
-// Add Plant
-
-async function addPlant(){
-
-if(!newPlant.value) return
-
-await addDoc(collection(db,"plants"),{
-name:newPlant.value,
-height:0,
-image:imageUrl.value
-})
-
-newPlant.value=""
-imageUrl.value=""
-showAdd.value=false
-
-loadPlants()
-
-}
-
-
-// Delete
-
-async function deletePlant(plant){
-
-if(!confirm(`Delete ${plant.name}?`)) return
-
-await deleteDoc(doc(db,"plants",plant.id))
-
-loadPlants()
-
-}
-
-
-// Update Height
-
-async function updateHeight(plant){
-
-if(!plant.newHeight) return
-
-const newHeight = Number(plant.newHeight)
-
-await updateDoc(doc(db,"plants",plant.id),{
-height:newHeight
-})
-
-plant.newHeight=null
-
-loadPlants()
-
-}
-
-
-// Growth History
-
-async function loadGrowthHistory(plantId){
-
-const q = query(
-collection(db,"plantGrowth"),
-where("plantId","==",plantId)
-)
-
-const querySnapshot = await getDocs(q)
-
-const history = querySnapshot.docs.map(doc => doc.data())
-
-chart.data.labels = history.map(h =>
-new Date(h.date).toLocaleDateString()
-)
-
-chart.data.datasets[0].data = history.map(h => h.height)
-
-chart.update()
-
-}
-
-
-// Chart
-
-function updateChart(){
+async function updateChart(){
 
 if(!chart) return
 
-chart.data.labels = plants.value.map(p=>p.name)
-chart.data.datasets[0].data = plants.value.map(p=>p.height)
+const snapshot = await getDocs(collection(db,"plantGrowth"))
 
+const monthlyData = new Array(12).fill(0)
+const counts = new Array(12).fill(0)
+
+snapshot.forEach(doc=>{
+
+const data = doc.data()
+
+const date = new Date(data.date)
+
+const month = date.getMonth()
+
+monthlyData[month]+=data.height
+counts[month]++
+
+})
+
+const avg = monthlyData.map((sum,i)=>
+counts[i] ? (sum/counts[i]) : 0
+)
+
+const months=[
+"Jan","Feb","Mar","Apr","May","Jun",
+"Jul","Aug","Sep","Oct","Nov","Dec"
+]
+
+chart.data.labels=months
+chart.data.datasets[0].data=avg
 chart.update()
 
 }
 
+// PLANT DETAIL
 
-onMounted(async ()=>{
+function openPlantDetail(plant){
+
+selectedPlant.value = plant
+showDetail.value = true
+
+setTimeout(()=>{
+loadPlantGrowth(plant.id)
+},300)
+
+}
+
+// LOAD PLANT GROWTH
+
+async function loadPlantGrowth(plantId){
+
+const snapshot = await getDocs(collection(db,"plantGrowth"))
+
+const data=[]
+
+snapshot.forEach(doc=>{
+
+const d=doc.data()
+
+if(d.plantId===plantId){
+
+data.push({
+date:d.date,
+height:d.height
+})
+
+}
+
+})
+
+const labels=data.map(d=>d.date)
+const heights=data.map(d=>d.height)
+
+const canvas=document.getElementById("plantChart")
+
+if(plantChart){
+plantChart.destroy()
+}
+
+plantChart=new Chart(canvas,{
+type:"line",
+data:{
+labels:labels,
+datasets:[
+{
+label:"Growth",
+data:heights,
+borderColor:"#22c55e",
+borderWidth:3,
+tension:0.4
+}
+]
+}
+})
+
+}
+
+// WATER CHECK
+
+function isNeedWater(plant){
+
+if(!plant.datetime) return false
+
+const last=new Date(plant.datetime)
+const now=new Date()
+
+const diff=(now-last)/(1000*60*60*24)
+
+return diff>2
+
+}
+
+onMounted(async()=>{
 
 await nextTick()
 
 loadWeather()
+startEnvironmentSimulation()
 
-const canvas = document.getElementById("growthChart")
-const ctx = canvas.getContext("2d")
+const canvas=document.getElementById("growthChart")
 
-const gradient = ctx.createLinearGradient(0,0,0,200)
+chart=new Chart(canvas,{
 
-gradient.addColorStop(0,"rgba(76,175,80,0.5)")
-gradient.addColorStop(1,"rgba(76,175,80,0)")
-
-chart = new Chart(ctx,{
 type:'line',
+
 data:{
 labels:[],
 datasets:[
 {
 data:[],
-borderColor:"#4CAF50",
-backgroundColor:gradient,
+borderColor:"#22c55e",
 borderWidth:3,
-tension:0.4,
-fill:true,
-pointRadius:4
+tension:0.4
 }
 ]
 },
+
 options:{
 responsive:true,
 maintainAspectRatio:false
 }
+
 })
 
 loadPlants()
@@ -427,67 +357,163 @@ loadPlants()
 
 </script>
 
-
 <style>
 
-.plant-grid{
+.main-bg{
+--background:#f5f7fb;
+}
+
+/* HEADER */
+
+.header{
+background:linear-gradient(135deg,#16a34a,#22c55e);
+color:white;
+padding:35px;
+border-bottom-left-radius:30px;
+border-bottom-right-radius:30px;
+box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+
+.header h1{
+margin:0;
+font-size:28px;
+}
+
+.header p{
+margin-top:5px;
+opacity:0.9;
+}
+
+/* STATS */
+
+.stats-grid{
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:14px;
+gap:15px;
+padding:15px;
 }
 
-.plant-card{
-border-radius:18px;
-overflow:hidden;
-box-shadow:0 8px 20px rgba(0,0,0,0.15);
-}
-
-.plant-image{
-width:100%;
-max-height:100px;
-object-fit:contain;
-background:#f8f8f8;
-padding:8px;
-border-radius:10px 10px 0 0;
-}
-
-.plant-title{
+.stat-card{
+background:white;
+border-radius:20px;
+padding:20px;
 text-align:center;
-font-weight:600;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
 }
 
-.height-text{
-font-weight:bold;
-color:#2e7d32;
-}
-
-.health-status{
-text-align:center;
+.icon{
+font-size:22px;
 margin-bottom:8px;
 }
 
-.healthy{
-color:green;
-font-weight:bold;
-}
+.green{color:#22c55e}
+.blue{color:#3b82f6}
+.yellow{color:#f59e0b}
+.red{color:#ef4444}
 
-.dry{
-color:#ff7043;
-font-weight:bold;
+/* CHART */
+
+.chart-card{
+margin:15px;
+border-radius:20px;
+box-shadow:0 10px 25px rgba(0,0,0,0.1);
 }
 
 .growth-chart{
 height:200px !important;
 }
 
-.preview{
-width:100%;
-margin-top:10px;
-border-radius:10px;
+/* PLANTS */
+
+.section-title{
+padding-left:15px;
+margin-top:20px;
+font-weight:600;
 }
 
-.weather-card{
+.plant-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:14px;
+padding:15px;
+}
+
+.plant-card{
+background:white;
+border-radius:18px;
+text-align:center;
+padding:15px;
+box-shadow:0 10px 20px rgba(0,0,0,0.08);
+transition:0.2s;
+cursor:pointer;
+}
+
+.plant-card:hover{
+transform:translateY(-5px);
+}
+
+.plant-image{
+width:100%;
+height:100px;
+object-fit:contain;
+}
+
+.plant-name{
+font-weight:600;
+margin-top:8px;
+}
+
+/* HEALTH */
+
+.health-badge{
+margin-top:6px;
+padding:4px 10px;
+border-radius:20px;
+font-size:12px;
+font-weight:600;
+display:inline-block;
+}
+
+.health-badge.healthy{
+background:#dcfce7;
+color:#166534;
+}
+
+.health-badge.warning{
+background:#fef3c7;
+color:#92400e;
+}
+
+.health-badge.critical{
+background:#fee2e2;
+color:#991b1b;
+}
+
+/* WATER */
+
+.water-alert{
+margin-top:6px;
+color:#dc2626;
+font-size:12px;
+font-weight:600;
+}
+
+/* DETAIL */
+
+.detail-card{
+text-align:center;
+}
+
+.detail-img{
+width:150px;
+margin:auto;
+display:block;
 margin-bottom:15px;
+}
+
+.big{
+font-size:16px;
+padding:8px 16px;
 }
 
 </style>
